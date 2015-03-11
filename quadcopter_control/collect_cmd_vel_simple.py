@@ -2,21 +2,23 @@
 import rospy
 from geometry_msgs.msg import Twist
 
-#import matplotlib.pyplot as plt
 
 collect = {
-    'px': [0]*100,
-    'py': [0]*100,
-    'pz': [0]*100,
-    'ax': [0]*100,
-    'ay': [0]*100,
-    'az': [0]*100    
+    'px': [],
+    'py': [],
+    'pz': [],
+    'ax': [],
+    'ay': [],
+    'az': []
 }
 
+
 def callback(data):
+    # unpack values
     values = [data.linear.x, data.linear.y, data.linear.z, data.angular.x, data.angular.y, data.angular.z]
     keys = ['px', 'py', 'pz', 'ax', 'ay', 'az']
 
+    # add values to collect by key
     for i in range(len(values)):
         collect[keys[i]].append(values[i])
     
@@ -30,7 +32,4 @@ def listener():
 
 
 if __name__ == '__main__':
-    #plt.ion()
-    #plt.plot([1.6,2.7])
-    #plt.title('interactive test')
     listener()

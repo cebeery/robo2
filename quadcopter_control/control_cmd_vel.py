@@ -5,14 +5,16 @@ from geometry_msgs.msg import Twist
 import time
 
 def talker(start_time):
+    # start publisher & node
     pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     rospy.init_node('talker', anonymous=True)
     rate = rospy.Rate(10) # 10hz
 
     prevState = 0
     state = 1
+
     while not rospy.is_shutdown():
-        elapsed = time.clock() - start_time
+        elapsed = time.clock() - start_time # time since program run
 
         if elapsed < 5:
             state = 1
@@ -26,7 +28,7 @@ def talker(start_time):
                 twist = Twist()
                 twist.linear.x = 0
                 twist.linear.y = 0
-                twist.linear.z = 1
+                twist.linear.z = 1 # go straight up
                 twist.angular.x = 0
                 twist.angular.y = 0
                 twist.angular.z = 0
@@ -37,7 +39,7 @@ def talker(start_time):
             elif state == 2:
                 prevState = 2
                 twist = Twist()
-                twist.linear.z = 0
+                twist.linear.z = 0 # stop going up
                 #rospy.loginfo(twist)
                 pub.publish(twist)
                 rate.sleep()

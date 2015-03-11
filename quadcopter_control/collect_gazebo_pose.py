@@ -3,6 +3,7 @@ import rospy
 from gazebo_msgs.msg import ModelStates
 
 def callback(data):
+    # data.pose[1] is the quadcopter
     rospy.loginfo(data.pose[1].position.x)
 
 
@@ -13,7 +14,4 @@ def listener():
 
 
 if __name__ == '__main__':
-    #plt.ion()
-    #plt.plot([1.6,2.7])
-    #plt.title('interactive test')
     listener()
