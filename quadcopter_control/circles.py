@@ -2,41 +2,26 @@
 # license removed for brevity
 import rospy
 from geometry_msgs.msg import Twist
+from gazebo_msgs.msg import ModelStates
 import time
+import math
 
-# why doesn't this work?
-def talker_2(start_time):
-    # start publisher & node
-    pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
-    rospy.init_node('talker', anonymous=True)
-    rate = rospy.Rate(10) # 10hz
+ang = 0
 
-    pub.publish(Twist())
+def callback(data):
+    # data.pose[1] is the quadcopter
+    ang = data.pose[1].orientation.z
 
-    if not rospy.is_shutdown():
-        rospy.loginfo('first command')
-        twist = Twist()
-        twist.linear.z = 1 # go straight up
-        pub.publish(twist)
-        rate.sleep()
-
-        time.sleep(5)
-        rospy.loginfo('second command')
-
-        twist.linear.z = 0 # stop going up
-        pub.publish(twist)
-        rate.sleep()
-
+def listener():
+    rospy.init_node('listener', anonymous = True)
+    rospy.Subscriber('gazebo/model_states', ModelStates, callback)
+    rospy.spin()
 
 def talker(start_time):
     # start publisher & node
     pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     rospy.init_node('talker', anonymous=True)
     rate = rospy.Rate(10) # 10hz
-
-    twist = Twist()
-    twist.linear.z = 1 # go straight up
-    pub.publish(Twist())
 
     prevState = 0
     state = 1
@@ -49,23 +34,25 @@ def talker(start_time):
         elif elapsed >= 5 and elapsed < 10:
             state = 2
 
-        if True:
-            #prevState != state: # why doesn't this work?
-            if state == 1:
+        if True: # currently no conditional...need to send commands continuously
+            if state == 1: # go straight up
                 prevState = 1
+                state = 2
                 twist = Twist()
-                twist.linear.z = 1 # go straight up
+                twist.linear.z = 1
                 pub.publish(twist)
                 rate.sleep()
-            elif state == 2:
+            elif state == 2: # trace circle
                 prevState = 2
                 twist = Twist()
-                twist.linear.z = 0 # stop going up
+                twist.linear.x = 1 # translate
+                twist.angular.z = 36 # spin
                 pub.publish(twist)
                 rate.sleep()
 
 if __name__ == '__main__':
     try:
+        #listener()
         talker(time.time())
     except rospy.ROSInterruptException:
         pass
