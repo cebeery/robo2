@@ -1,4 +1,4 @@
-To use the empty world, you need to add the three files in this directory to particular subfolders in the ros package hector_quadrotor_tutorial.
+To use the empty world, you need to add the three files in this directory to particular subfolders in the ros package ```hector_quadrotor_tutorial```. Note: the paths below are NOT absolute paths - they are relative to the location of ```hector_quadrotor_tutorial```.
 
 Move empty.launch to:
 ```
