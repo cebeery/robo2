@@ -43,7 +43,7 @@ class PidController:
         # Compute total thrust. ***
         total = m * g / k / np.cos(self.proportional[0,0]) * np.cos(self.proportional[2,0])
 
-        # Compute error against zero and adjust with PID 
+        # Compute error against [0,0,0] and adjust with PID 
         err = self.Kd * model.state.thetadots + self.Kp * self.proportional - self.Ki * self.integral
 
         # Update controller state.

@@ -1,4 +1,5 @@
 import rospy
+import numpy as np
 from geometry_msgs.msg import Twist
 from gazebo_msgs.msg import ModelStates
 import time
@@ -6,7 +7,7 @@ from quadrotor_utils import Model, PidController
 
 class RosNode:
     # BOILERPLATE - LEAVE AS IS
-    def __init__(self):
+    def __init__(self, setpoint=[0,0,0]):
         ''' create node w/ publisher & subscriber '''
         self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
         self.sub = rospy.Subscriber('gazebo/model_states', ModelStates, self.sub_callback)
@@ -15,6 +16,7 @@ class RosNode:
         self.model = Model()
         self.controller = PidController()
         self.twist = Twist()
+        self.setpoint = np.array([setpoint]).transpose()
 
     def rise(self):
         ''' move up for 2 seconds & stop for 2 '''
