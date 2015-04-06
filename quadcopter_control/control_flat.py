@@ -18,11 +18,11 @@ class ControlFlat(RosNode):
     def switch(self, elapsed):
         disturbed = False
 
-        if (elapsed < 2):
+        if (elapsed < 2): # rise for 2 seconds
             self.rate.sleep()
             self.twist.linear.z = 1
             self.pub.publish(self.twist)
-        else:
+        else: # then disturb once and control to flat
             if not disturbed:
                 self.model.state.disturb()
                 disturbed = True

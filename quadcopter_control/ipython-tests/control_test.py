@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# FOR IPYTHON - not for use with ROS
+
 import numpy as np
 from quadrotor_utils import Model, PidController
         
