@@ -43,5 +43,5 @@ class ControlTilt(RosNode):
             self.rate.sleep()
 
 if __name__ == "__main__":
-    node = ControlTilt(setpoint=[40,0,40])
+    node = ControlTilt(setpoint=[0.1, 0, 0])
     node.start()
