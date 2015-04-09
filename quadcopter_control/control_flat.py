@@ -18,11 +18,16 @@ class ControlFlat(RosNode):
     def switch(self, elapsed):
         disturbed = False
 
-        if (elapsed < 2): # rise for 2 seconds
+        # self.training defaults to true -> in training mode already
+
+        # rise for 2 seconds
+        if (elapsed < 2):
             self.rate.sleep()
             self.twist.linear.z = 1
             self.pub.publish(self.twist)
-        else: # then disturb once and control to flat
+
+        # then disturb once and control to flat
+        elif (elapsed < 10):
             if not disturbed:
                 self.model.state.disturb()
                 disturbed = True
@@ -40,6 +45,15 @@ class ControlFlat(RosNode):
             self.twist.angular.z = self.model.state.thetadots[2,0]
             self.pub.publish(self.twist)
             self.rate.sleep()
+
+        # exit training mode - now do complicated maneuvers
+        else: 
+            self.training = False # exit training mode
+            rospy.loginfo('Done training')
+            self.twist = Twist() # WRITE COMPLEX MANEUVERS HERE
+            self.pub.publish(self.twist)
+            self.rate.sleep()
+
 
 if __name__ == "__main__":
     node = ControlFlat()
