@@ -1,4 +1,5 @@
 import numpy as np
+import rospy
 
 ''' FILE STRUCTURE '''
 # -> class PidController
@@ -61,6 +62,16 @@ class Model:
         self.learn = QuadrotorParameters()
         self.truth = QuadrotorParameters(truth=True)
         self.training = True
+
+
+    def updateLearn(self, meas_thetas, meas_thetadots, des_thetas, des_thetadots):
+        rospy.loginfo(meas_thetas)
+        rospy.loginfo(meas_thetadots)
+        rospy.loginfo(des_thetas)
+        rospy.loginfo(des_thetadots)
+        rospy.loginfo('-----------')
+
+        self.learn = self.learn # do modification of learned parameters here        
 
 
     def rotor_speeds(self, err, total):

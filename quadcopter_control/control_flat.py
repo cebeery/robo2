@@ -26,8 +26,8 @@ class ControlFlat(RosNode):
             self.twist.linear.z = 1
             self.pub.publish(self.twist)
 
-        # then disturb once and control to flat
-        elif (elapsed < 10):
+        # train (currently, while controlling to flat)
+        elif (self.model.training):
             if not disturbed:
                 self.model.state.disturb()
                 disturbed = True
@@ -36,7 +36,9 @@ class ControlFlat(RosNode):
             [err, total] = self.controller.update(self.model)
             raw_data = self.model.rotor_speeds(err, total)
             self.model.rotors2thetadot(raw_data, self.controller.dt)
-            rospy.loginfo(self.model.state.thetadots)
+
+            # update learned parameters (currently dummy method)
+            self.model.updateLearn(self.model.state.thetas, self.model.state.thetadots, None, None)
 
             # publish angular velocities
             self.twist = Twist()
@@ -46,9 +48,11 @@ class ControlFlat(RosNode):
             self.pub.publish(self.twist)
             self.rate.sleep()
 
-        # exit training mode - now do complicated maneuvers
+            if (elapsed > 10): # replace with real metric
+                self.model.training = False # exit training mode
+
+        # out of training mode - now do complicated maneuvers
         else: 
-            self.training = False # exit training mode
             rospy.loginfo('Done training')
             self.twist = Twist() # WRITE COMPLEX MANEUVERS HERE
             self.pub.publish(self.twist)
