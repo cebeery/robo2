@@ -1,3 +1,6 @@
+Dependencies:
+* sudo apt-get install python-pyx
+
 To run:
 
 1. Work through the ROS tutorial for the hector quadrotor stack http://wiki.ros.org/hector_quadrotor/Tutorials/Quadrotor%20outdoor%20flight%20demo. Be sure you create a catkin_ws.
