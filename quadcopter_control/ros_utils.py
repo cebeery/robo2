@@ -16,24 +16,6 @@ class RosNode:
         self.controller = PidController()
         self.twist = Twist()
 
-    def rise(self):
-        ''' move up for 2 seconds & stop for 2 '''
-        #rise_start = time.time()
-
-        #elapsed = time.time() - rise_start
-        # raise quadcopter
-        self.rate.sleep()
-        self.twist.linear.z = 1
-        self.pub.publish(self.twist)
-        
-        # rise time
-        time.sleep(1)
-         
-        # stop rising
-        self.rate.sleep()
-        self.twist = Twist()
-        self.pub.publish(self.twist)
-
     def start(self):
         ''' call to start the node '''
         self.start_time = time.time()
