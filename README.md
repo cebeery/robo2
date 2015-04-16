@@ -1,5 +1,6 @@
 Dependencies:
 * sudo apt-get install python-pyx
+* pygame (http://www.pygame.org/wiki/CompileUbuntu)
 
 To run:
 
