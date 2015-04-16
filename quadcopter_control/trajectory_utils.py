@@ -7,6 +7,7 @@ from pyx import path, unit
 import copy
 
 # for pyx (Trajectory.arclen)
+# ALL UNITS m (distance), m/s (velocity), and s (time)
 unit.set(defaultunit="m")
 metersPerPoint = 0.00035277
 
@@ -26,7 +27,8 @@ def makeTrajectory():
     screen = pygame.display.set_mode(size) 
     
     #Creates objects to see and modify virtual world
-    traj = Trajectory(screen)
+    vel = 1 # forward velocity of quadcopter, m/s
+    traj = Trajectory(vel)
     view = View(traj,screen)
 
     #denote if pygame screen should be visible
@@ -67,8 +69,10 @@ def makeTrajectory():
 
     pygame.quit()
 
-    traj.makePath() # make pyx path tracing all points
-    traj.dropKeyframes(10)
+    # Make PyX path and drop specified number of keyframes
+    traj.makePath()
+    traj.dropKeyframes(100)
+
     return traj
 
 
@@ -79,12 +83,14 @@ def makeTrajectory():
     Stores points from user input & translates into evenly spaced keyframes 
 '''
 class Trajectory:
-    def __init__(self,screen):
+    def __init__(self,velocity):
+    	self.velocity = velocity
         self.points = []
         self.draw = None
         self.path = None
         self.arclen = None
-        self.keyframes = []
+        self.duration = None # arclen/velocity
+        self.keyframes = {'pos': [], 'th': [], 't': []} # pos = (x,y) position pairs (m); th = angles (deg), t = times (sec)
 
 
     def addPoints(self): 
@@ -147,6 +153,7 @@ class Trajectory:
         # store curve in object
         self.path = p
         self.arclen = p.arclen_pt()*metersPerPoint
+        self.duration = self.arclen/self.velocity
 
 
     def getKeyframe(self, percentLength):
@@ -163,10 +170,12 @@ class Trajectory:
 
 
     def dropKeyframes(self, n):
-    	self.keyframes = [] # clear, so method can be reused
+    	self.keyframes = {'pos': [], 'th': [], 't': []} # clear, so method can be reused
     	for i in range(n):
     		percentLength = i/float(n)
-    		self.keyframes.append(self.getKeyframe(percentLength))
+    		self.keyframes['pos'].append(self.getKeyframe(percentLength)) # (x,y) pair
+    		self.keyframes['t'].append(self.duration*percentLength) # time
+    		self.keyframes['th'].append(0) # TODO: slope/angle math
 
 
 ''' View:
