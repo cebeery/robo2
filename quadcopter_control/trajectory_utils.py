@@ -65,7 +65,9 @@ def makeTrajectory():
             if event.type == KEYUP and event.key == pygame.K_ESCAPE:
                 running = False
 
-    pygame.quit() 
+    pygame.quit()
+
+    traj.makePath() # make pyx path tracing all points
     return traj
 
 
@@ -79,7 +81,9 @@ class Trajectory:
     def __init__(self,screen):
         self.points = []
         self.draw = None
-       
+        self.path = None
+        self.arclen = None
+
 
     def addPoints(self): 
         x,y = pygame.mouse.get_pos()
@@ -88,6 +92,19 @@ class Trajectory:
             self.points.append((x,y))
         elif x != self.points[-1][0] or y != self.points[-1][1]:
             self.points.append((x,y))
+
+
+    def keyframe(self, percentLength):
+    	''' percentLength = 0 -> keyframe at beginning of path
+    		percentLength = 0.5 -> keyframe halfway along arc length
+    		etc
+    	'''
+    	point = self.path.at(self.arclen * percentLength)
+
+    	x = unit.tom(point[0]) # tom = convert to meters
+    	y = unit.tom(point[1])
+
+    	return (x,y)
 
 
     def update(self, event):
@@ -105,7 +122,7 @@ class Trajectory:
             return True
 
 
-    def arclen(self):
+    def makePath(self):
         # so we can use pop() w/o modifying self.positions
         positions = copy.copy(self.points)
         positions.reverse()
@@ -138,8 +155,9 @@ class Trajectory:
                 p = path.line(*points)
 
 
-        # ARC LENGTH
-        return p.arclen_pt()*metersPerPoint
+        # store curve in object
+        self.path = p
+        self.arclen = p.arclen_pt()*metersPerPoint
 
 
 
