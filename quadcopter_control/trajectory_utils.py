@@ -68,6 +68,7 @@ def makeTrajectory():
     pygame.quit()
 
     traj.makePath() # make pyx path tracing all points
+    traj.dropKeyframes(10)
     return traj
 
 
@@ -83,6 +84,7 @@ class Trajectory:
         self.draw = None
         self.path = None
         self.arclen = None
+        self.keyframes = []
 
 
     def addPoints(self): 
@@ -92,19 +94,6 @@ class Trajectory:
             self.points.append((x,y))
         elif x != self.points[-1][0] or y != self.points[-1][1]:
             self.points.append((x,y))
-
-
-    def keyframe(self, percentLength):
-    	''' percentLength = 0 -> keyframe at beginning of path
-    		percentLength = 0.5 -> keyframe halfway along arc length
-    		etc
-    	'''
-    	point = self.path.at(self.arclen * percentLength)
-
-    	x = unit.tom(point[0]) # tom = convert to meters
-    	y = unit.tom(point[1])
-
-    	return (x,y)
 
 
     def update(self, event):
@@ -159,6 +148,25 @@ class Trajectory:
         self.path = p
         self.arclen = p.arclen_pt()*metersPerPoint
 
+
+    def getKeyframe(self, percentLength):
+    	''' percentLength = 0 -> keyframe at beginning of path
+    		percentLength = 0.5 -> keyframe halfway along arc length
+    		etc
+    	'''
+    	point = self.path.at(self.arclen * percentLength)
+
+    	x = unit.tom(point[0]) # tom = convert to meters
+    	y = unit.tom(point[1])
+
+    	return (x,y)
+
+
+    def dropKeyframes(self, n):
+    	self.keyframes = [] # clear, so method can be reused
+    	for i in range(n):
+    		percentLength = i/float(n)
+    		self.keyframes.append(self.getKeyframe(percentLength))
 
 
 ''' View:
