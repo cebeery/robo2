@@ -5,6 +5,7 @@ from pygame.locals import *
 import time
 from pyx import path, unit
 import copy
+import math
 
 # for pyx (Trajectory.arclen)
 # ALL UNITS m (distance), m/s (velocity), and s (time)
@@ -71,7 +72,7 @@ def makeTrajectory():
 
     # Make PyX path and drop specified number of keyframes
     traj.makePath()
-    traj.dropKeyframes(100)
+    traj.makeKeyframes(100)
 
     return traj
 
@@ -84,7 +85,7 @@ def makeTrajectory():
 '''
 class Trajectory:
     def __init__(self,velocity):
-    	self.velocity = velocity
+        self.velocity = velocity
         self.points = []
         self.draw = None
         self.path = None
@@ -94,15 +95,17 @@ class Trajectory:
 
 
     def addPoints(self): 
+        ''' stores a point from mouse position in pygame window '''
         x,y = pygame.mouse.get_pos()
 
         if not self.points:
             self.points.append((x,y))
         elif x != self.points[-1][0] or y != self.points[-1][1]:
-            self.points.append((x,y))
+            self.points.append((x,y)) # flip y axis
 
 
     def update(self, event):
+        ''' watches pygame window for events '''
         if event.type == MOUSEBUTTONDOWN: 
             self.draw = True      
         elif event.type == MOUSEBUTTONUP:          
@@ -118,6 +121,7 @@ class Trajectory:
 
 
     def makePath(self):
+        ''' makes pyx path object from pygame points '''
         # so we can use pop() w/o modifying self.positions
         positions = copy.copy(self.points)
         positions.reverse()
@@ -156,33 +160,84 @@ class Trajectory:
         self.duration = self.arclen/self.velocity
 
 
-    def getKeyframe(self, percentLength):
-    	''' percentLength = 0 -> keyframe at beginning of path
-    		percentLength = 0.5 -> keyframe halfway along arc length
-    		etc
-    	'''
-    	point = self.path.at(self.arclen * percentLength)
+    def makeKeyframes(self, n):
+        ''' drops n keyframes along the trajectory 
+            no return -> stores to self.keyframes
+        '''
+        self.keyframes = {'pos': [], 'th': [], 't': []} # clear, so method can be reused
+        
+        for i in range(n):
+            percentLength = i/float(n)
 
-    	x = unit.tom(point[0]) # tom = convert to meters
-    	y = unit.tom(point[1])
+            # TIME from duration * percentLength
+            self.keyframes['t'].append(self.duration*percentLength) # time
+            
+            # POSITION from arclen * percentLength
+            point = self.path.at(self.arclen * percentLength)
+            x = unit.tom(point[0]) # tom = convert to meters
+            y = unit.tom(point[1])
+            self.keyframes['pos'].append((x,y))
 
-    	return (x,y)
+            # THETA from previous & next keyframes (working 1 frame behind pos)
+            pos = self.keyframes['pos']
+
+            if len(pos) <= 1: # wait until len(pos)==2 to add first th
+                pass 
+
+            elif len(pos) == 2 or len(pos) == 3: # dummy angles - not enough info
+                self.keyframes['th'].append(0) 
+
+            else: # have enough info! Compute angle.
+                # previous, current, & next positions
+                prv = pos[-3]
+                cur = pos[-2]
+                nxt = pos[-1]
+
+                # x and y deltas
+                dx1 = cur[0]-prv[0]
+                dx2 = nxt[0]-cur[0]
+
+                dy1 = -(cur[1]-prv[1]) # flip b/c pygame coordinatization
+                dy2 = -(nxt[1]-cur[1])
+
+                # angles
+                th1 = self.computeTheta(dx1, dy1)
+                th2 = self.computeTheta(dx2, dy2)
+
+                # average angles & save
+                avg = (th1+th2)/2
+                self.keyframes['th'].append(avg)
+
+        # add last keyframe -> catch up to len(pos).
+        self.keyframes['th'].append(0)
 
 
-    def dropKeyframes(self, n):
-    	self.keyframes = {'pos': [], 'th': [], 't': []} # clear, so method can be reused
-    	for i in range(n):
-    		percentLength = i/float(n)
-    		self.keyframes['pos'].append(self.getKeyframe(percentLength)) # (x,y) pair
-    		self.keyframes['t'].append(self.duration*percentLength) # time
-    		self.keyframes['th'].append(0) # TODO: slope/angle math
+    def computeTheta(self, x, y):
+        ''' returns angle ccw from x axis for (x,y) point
+            handles quadrant math...atan has a range of (-pi/2, pi/2) 
+        '''
+        if x == 0:
+            theta = math.atan(y/0.001)
+        else:
+            theta = math.atan(y/x)
+            if x < 0:
+                if y > 0:
+                    theta = math.pi/2 + abs(theta)
+                else:
+                    theta = math.pi + abs(theta)
+
+        while theta < 0:
+            theta = theta + 2*math.pi
+
+        return math.degrees(theta)
+        
 
 
 ''' View:
     Visualizes points from user input
 '''
 class View:
-    """ A view of Turtle's World rendered in a Pygame window """
+    """ A view rendered in a Pygame window """
     def __init__(self,model,screen):
         self.points = model.points
         self.screen = screen
