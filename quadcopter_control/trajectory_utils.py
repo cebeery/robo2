@@ -6,6 +6,7 @@ import time
 from pyx import path, unit
 import copy
 import math
+import pickle
 
 # for pyx (Trajectory.arclen)
 # ALL UNITS m (distance), m/s (velocity), and s (time)
@@ -18,61 +19,72 @@ metersPerPoint = 0.00035277
 ''' makeTrajectory:
     Show the user a view & make a trajectory from input
 '''
-def makeTrajectory():
-    pygame.init()
+def makeTrajectory(loadfile=None, savefile=None):
+    if loadfile:
+        with open('trajectories/'+loadfile+'.p', 'rb') as handle:
+            traj = pickle.load(handle)
+            traj.makePath() # remake path object...can't pickle
 
-    """__________Initiates Class Objects and Umbrella Variables___________"""
+    else:
+        pygame.init()
 
-    #Creates display surface
-    size = (1000,600)
-    screen = pygame.display.set_mode(size) 
-    
-    #Creates objects to see and modify virtual world
-    vel = 1 # forward velocity of quadcopter, m/s
-    traj = Trajectory(vel)
-    view = View(traj,screen)
+        """__________Initiates Class Objects and Umbrella Variables___________"""
 
-    #denote if pygame screen should be visible
-    running = True
-    
-    
-    """__________________________Draw/Drag Paths__________________________"""
-  
-    while running:
-        for event in pygame.event.get():
-            #End of World Conditions
-            if event.type == QUIT:
-                running = False
-            if event.type == KEYUP and event.key == pygame.K_ESCAPE:
-                running = False
-            running = traj.update(event)
+        #Creates display surface
+        size = (1000,600)
+        screen = pygame.display.set_mode(size) 
+        
+        #Creates objects to see and modify virtual world
+        vel = 1 # forward velocity of quadcopter, m/s
+        traj = Trajectory(vel)
+        view = View(traj,screen)
 
-        """
-        The window to paradise is fluid, allowing us to bear it witness
-        """        
-        view.draw()
-
-        time.sleep(.005)
+        #denote if pygame screen should be visible
+        running = True
         
         
-    """________________________Hold Path on Screen_________________________"""
-  
-    view.interpolate()
-    running = True
-    
-    #Display Graph until End of World
-    while running:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                running = False
-            if event.type == KEYUP and event.key == pygame.K_ESCAPE:
-                running = False
+        """__________________________Draw/Drag Paths__________________________"""
+      
+        while running:
+            for event in pygame.event.get():
+                #End of World Conditions
+                if event.type == QUIT:
+                    running = False
+                if event.type == KEYUP and event.key == pygame.K_ESCAPE:
+                    running = False
+                running = traj.update(event)
 
-    pygame.quit()
+            """
+            The window to paradise is fluid, allowing us to bear it witness
+            """        
+            view.draw()
 
-    # Make PyX path and drop specified number of keyframes
-    traj.makePath()
-    traj.makeKeyframes(100)
+            time.sleep(.005)
+            
+            
+        """________________________Hold Path on Screen_________________________"""
+      
+        view.interpolate()
+        running = True
+        
+        #Display Graph until End of World
+        while running:
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    running = False
+                if event.type == KEYUP and event.key == pygame.K_ESCAPE:
+                    running = False
+
+        pygame.quit()
+
+        # Make PyX path and drop specified number of keyframes
+        traj.makePath()
+        traj.makeKeyframes(100)
+
+        if saveFile:
+            with open('trajectories/'+saveFile+'.p', 'wb') as handle:
+                traj.path = None # can't pickle path objects
+                pickle.dump(traj, handle)
 
     return traj
 
