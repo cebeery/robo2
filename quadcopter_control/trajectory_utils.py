@@ -81,8 +81,8 @@ def makeTrajectory(loadfile=None, savefile=None):
         traj.makePath()
         traj.makeKeyframes(100)
 
-        if saveFile:
-            with open('trajectories/'+saveFile+'.p', 'wb') as handle:
+        if savefile:
+            with open('trajectories/'+savefile+'.p', 'wb') as handle:
                 traj.path = None # can't pickle path objects
                 pickle.dump(traj, handle)
 
