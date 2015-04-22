@@ -35,7 +35,7 @@ def makeTrajectory(loadfile=None, savefile=None):
         screen = pygame.display.set_mode(size) 
         
         #Creates objects to see and modify virtual world
-        vel = 1 # forward velocity of quadcopter, m/s
+        vel = 100 # forward velocity of quadcopter, m/s
         traj = Trajectory(vel)
         view = View(traj,screen)
 
@@ -195,6 +195,7 @@ class Trajectory:
             pos = self.keyframes['pos']
 
             if len(pos) <= 1: # wait until len(pos)==2 to add first th
+                self.keyframes['thdot'].append(0)
                 pass 
 
             elif len(pos) == 2 or len(pos) == 3: # dummy angles - not enough info
@@ -232,6 +233,7 @@ class Trajectory:
 
         # add last keyframe -> catch up to len(pos).
         self.keyframes['th'].append(0)
+        self.keyframes['thdot'].append(0)
 
 
     def computeTheta(self, x, y):
