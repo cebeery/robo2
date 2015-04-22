@@ -177,7 +177,7 @@ class Trajectory:
         ''' drops n keyframes along the trajectory 
             no return -> stores to self.keyframes
         '''
-        self.keyframes = {'pos': [], 'th': [], 't': []} # clear, so method can be reused
+        self.keyframes = {'pos': [], 't': [], 'th': [], 'thdot': []} # clear, so method can be reused
         
         for i in range(n):
             percentLength = i/float(n)
@@ -218,8 +218,17 @@ class Trajectory:
                 th2 = self.computeTheta(dx2, dy2)
 
                 # average angles & save
-                avg = (th1+th2)/2
-                self.keyframes['th'].append(avg)
+                thavg = (th1+th2)/2
+                self.keyframes['th'].append(thavg)
+
+            # THETADOT from previous & current thetas
+            thetas = self.keyframes['th']
+            if len(thetas) <= 1:
+            	pass
+            else:
+            	timestep = self.duration/n # time between keyframes, seconds
+            	thdot = (thetas[-1] - thetas[-2])/timestep
+            	self.keyframes['thdot'].append(thdot)
 
         # add last keyframe -> catch up to len(pos).
         self.keyframes['th'].append(0)
