@@ -3,7 +3,7 @@
 import pygame
 from pygame.locals import *
 import time
-from pyx import path, unit
+from pyx import path, unit, deformer
 import copy
 import math
 import pickle
@@ -167,6 +167,7 @@ class Trajectory:
 
 
         # store curve in object
+        p = deformer.smoothed(2.0).deform(p) # smooth curve
         self.path = p
         self.arclen = p.arclen_pt()*metersPerPoint
         self.duration = self.arclen/self.velocity
