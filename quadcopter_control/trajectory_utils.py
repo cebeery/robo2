@@ -35,7 +35,7 @@ def makeTrajectory(loadfile=None, savefile=None):
         screen = pygame.display.set_mode(size) 
         
         #Creates objects to see and modify virtual world
-        vel = 10 # forward velocity of quadcopter, m/s
+        vel = 100 # forward velocity of quadcopter, m/s
         traj = Trajectory(vel)
         view = View(traj,screen)
 
@@ -76,7 +76,7 @@ def makeTrajectory(loadfile=None, savefile=None):
 
         # Make PyX path and drop specified number of keyframes
         traj.makePath()
-        traj.makeKeyframes(1000)
+        traj.makeKeyframes(100)
 
         if savefile:
             with open('trajectories/'+savefile+'.p', 'wb') as handle:
