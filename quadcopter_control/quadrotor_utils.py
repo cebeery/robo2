@@ -204,19 +204,19 @@ class QuadrotorParameters():
 
         # TODO: get real values from Gazebo model
         if truth:
-            self.m = 0.5    # mass of quadcopter, kg
+            self.m = 1.477    # mass of quadcopter, kg
             self.k = 3e-6   # relates thrust to square of angular velocity (?)
-            self.L = 0.25   # quadcopter arm length, m
+            self.L = 0.264   # quadcopter arm length, m
             self.b = 1e-7   # drag coefficient (?)
-            self.I = np.array([[5e-3, 0, 0], [0, 5e-3, 0], [0, 0, 5e-3]]) # inertia matrix
+            self.I = np.array([[0.01152, 0, 0], [0, 0.01152, 0], [0, 0, 0.0218]]) # inertia matrix
         
         # initial values for training
         else:
-            self.m = 0.5    # mass of quadcopter, kg
+            self.m = 1.477    # mass of quadcopter, kg
             self.k = 3e-6   # relates thrust to square of angular velocity (?)
-            self.L = 0.25   # quadcopter arm length, m
+            self.L = 0.264   # quadcopter arm length, m
             self.b = 1e-7   # drag coefficient (?)
-            self.I = np.array([[5e-3, 0, 0], [0, 5e-3, 0], [0, 0, 5e-3]]) # inertia matrix
+            self.I = np.array([[0.01152, 0, 0], [0, 0.01152, 0], [0, 0, 0.0218]]) # inertia matrix
 
 
 class State():

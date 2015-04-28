@@ -32,11 +32,15 @@ class ControlTrajectory(RosNode):
             # index into keyframes
             trajectoryTime = elapsed - riseTime
             index = bisect.bisect_left(times, trajectoryTime)
-            rospy.loginfo(index)
 
             # set z-axis spin setpoint
             setpoint = np.zeros([3,1])
-            setpoint[2,0] = thetadots[index]
+            rospy.loginfo(index)
+            if index > len(times) - 1:
+                index = len(times) - 1
+            setpoint[2,0] = thetadots[index]/36
+            rospy.loginfo(setpoint[2,0])
+            rospy.loginfo('--')
 
             # compute angular velocities
             [err, total] = self.controller.update(self.model, setpoint)
@@ -48,14 +52,14 @@ class ControlTrajectory(RosNode):
 
             # publish angular velocities
             self.twist = Twist()
-            self.twist.linear.x = 0.8
+            self.twist.linear.x = 1
             self.twist.angular.x = self.model.state.thetadots[0,0]
             self.twist.angular.y = self.model.state.thetadots[1,0]
             self.twist.angular.z = self.model.state.thetadots[2,0]
             self.pub.publish(self.twist)
             self.rate.sleep()
 
-            if (index == len(times)-1): # done with maneuver...replace with real metric
+            if (index >= len(times)-1): # done with maneuver...replace with real metric
                 self.model.training = False # exit training mode
 
         # out of training mode - now do complicated maneuvers
@@ -67,6 +71,6 @@ class ControlTrajectory(RosNode):
 
 
 if __name__ == "__main__":
-    traj = trajectory_utils.makeTrajectory()
+    traj = trajectory_utils.makeTrajectory(loadfile='circle')
     node = ControlTrajectory(traj)
     node.start()
