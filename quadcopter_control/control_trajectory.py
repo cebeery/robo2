@@ -71,6 +71,7 @@ class ControlTrajectory(RosNode):
 
 
 if __name__ == "__main__":
-    traj = trajectory_utils.makeTrajectory(loadfile='circle')
+    traj = trajectory_utils.makeTrajectory(loadfile='line')
+    #traj = trajectory_utils.makeTrajectory(savefile='test')
     node = ControlTrajectory(traj)
     node.start()
