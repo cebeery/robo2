@@ -25,11 +25,10 @@ class PidController:
         self.Ki = Ki
 
 
-    def update(self, model):
+    def update(self, model, setpoint=np.zeros([3,1])):
         """ Performs PID update against setpoint [0,0,0]
             Always use model's learn params
         """
-    
         # unpack quadrotor parameters
         g = model.learn.g
         m = model.learn.m
@@ -43,10 +42,10 @@ class PidController:
         total = m * g / k / np.cos(self.proportional[0,0]) * np.cos(self.proportional[2,0])
 
         # Compute error against [0,0,0] and adjust with PID 
-        err = self.Kd * model.state.thetadots + self.Kp * self.proportional - self.Ki * self.integral
+        err = self.Kd * (model.state.thetadots-setpoint) + self.Kp * self.proportional - self.Ki * self.integral
 
         # Update controller state.
-        self.proportional = self.proportional + self.dt * model.state.thetadots
+        self.proportional = self.proportional + self.dt * (model.state.thetadots-setpoint)
         self.integral = self.integral + self.dt * self.proportional
 
         return [err, total]
@@ -65,11 +64,11 @@ class Model:
 
 
     def updateLearn(self, meas_thetas, meas_thetadots, des_thetas, des_thetadots):
-        rospy.loginfo(meas_thetas)
-        rospy.loginfo(meas_thetadots)
-        rospy.loginfo(des_thetas)
-        rospy.loginfo(des_thetadots)
-        rospy.loginfo('-----------')
+        #rospy.loginfo(meas_thetas)
+        #rospy.loginfo(meas_thetadots)
+        #rospy.loginfo(des_thetas)
+        #rospy.loginfo(des_thetadots)
+        #rospy.loginfo('-----------')
 
         self.learn = self.learn # do modification of learned parameters here        
 
@@ -205,19 +204,19 @@ class QuadrotorParameters():
 
         # TODO: get real values from Gazebo model
         if truth:
-            self.m = 0.5    # mass of quadcopter, kg
+            self.m = 1.477    # mass of quadcopter, kg
             self.k = 3e-6   # relates thrust to square of angular velocity (?)
-            self.L = 0.25   # quadcopter arm length, m
+            self.L = 0.264   # quadcopter arm length, m
             self.b = 1e-7   # drag coefficient (?)
-            self.I = np.array([[5e-3, 0, 0], [0, 5e-3, 0], [0, 0, 5e-3]]) # inertia matrix
+            self.I = np.array([[0.01152, 0, 0], [0, 0.01152, 0], [0, 0, 0.0218]]) # inertia matrix
         
         # initial values for training
         else:
-            self.m = 0.5    # mass of quadcopter, kg
+            self.m = 1.477    # mass of quadcopter, kg
             self.k = 3e-6   # relates thrust to square of angular velocity (?)
-            self.L = 0.25   # quadcopter arm length, m
+            self.L = 0.264   # quadcopter arm length, m
             self.b = 1e-7   # drag coefficient (?)
-            self.I = np.array([[5e-3, 0, 0], [0, 5e-3, 0], [0, 0, 5e-3]]) # inertia matrix
+            self.I = np.array([[0.01152, 0, 0], [0, 0.01152, 0], [0, 0, 0.0218]]) # inertia matrix
 
 
 class State():

@@ -35,7 +35,7 @@ def makeTrajectory(loadfile=None, savefile=None):
         screen = pygame.display.set_mode(size) 
         
         #Creates objects to see and modify virtual world
-        vel = 1 # forward velocity of quadcopter, m/s
+        vel = 100 # forward velocity of quadcopter, m/s
         traj = Trajectory(vel)
         view = View(traj,screen)
 
@@ -54,9 +54,6 @@ def makeTrajectory(loadfile=None, savefile=None):
                     running = False
                 running = traj.update(event)
 
-            """
-            The window to paradise is fluid, allowing us to bear it witness
-            """        
             view.draw()
 
             time.sleep(.005)
@@ -103,7 +100,7 @@ class Trajectory:
         self.path = None
         self.arclen = None
         self.duration = None # arclen/velocity
-        self.keyframes = {'pos': [], 'th': [], 't': []} # pos = (x,y) position pairs (m); th = angles (deg), t = times (sec)
+        self.keyframes = {'pos': [], 't': [], 'thdot': []} # pos = (x,y) position pairs (m); th = angles (deg), t = times (sec)
 
 
     def addPoints(self): 
@@ -177,9 +174,10 @@ class Trajectory:
         ''' drops n keyframes along the trajectory 
             no return -> stores to self.keyframes
         '''
-        self.keyframes = {'pos': [], 'th': [], 't': []} # clear, so method can be reused
+        self.keyframes = {'pos': [], 't': [], 'thdot': []} # clear, so method can be reused
         
         for i in range(n):
+            timestep = self.duration/n # time between keyframes, seconds
             percentLength = i/float(n)
 
             # TIME from duration * percentLength
@@ -194,11 +192,11 @@ class Trajectory:
             # THETA from previous & next keyframes (working 1 frame behind pos)
             pos = self.keyframes['pos']
 
-            if len(pos) <= 1: # wait until len(pos)==2 to add first th
-                pass 
+            if len(pos) <= 1: # working 1 index behind time/pos (need next position to compute angle)
+                pass
 
-            elif len(pos) == 2 or len(pos) == 3: # dummy angles - not enough info
-                self.keyframes['th'].append(0) 
+            elif len(pos) <= 3: # don't have enough info to compute real angle yet
+                self.keyframes['thdot'].append(0)
 
             else: # have enough info! Compute angle.
                 # previous, current, & next positions
@@ -216,13 +214,20 @@ class Trajectory:
                 # angles
                 th1 = self.computeTheta(dx1, dy1)
                 th2 = self.computeTheta(dx2, dy2)
+            
+                if self.getQuadrants([th1, th2]) == [1,4]: # adjust for q 1/4 weirdness
+                    if th1 > th2: # going from q4 to q1, counterclockwise
+                        change_th = th2 - (th1-360) # e.g. 359 to 1 = 2 -> 1-(359-360) = 2
+                    else: # going from q1 to q4, clockwise
+                        change_th = (th2-360) - th1 # e.g. 1 to 359 = -2 -> (359-360)-1 = -2
+                else:
+                    change_th = th2 - th1
 
-                # average angles & save
-                avg = (th1+th2)/2
-                self.keyframes['th'].append(avg)
+                thdot = change_th/timestep
+                self.keyframes['thdot'].append(thdot)
 
-        # add last keyframe -> catch up to len(pos).
-        self.keyframes['th'].append(0)
+        # add last keyframe -> catch up to time & position
+        self.keyframes['thdot'].append(0)
 
 
     def computeTheta(self, x, y):
@@ -235,7 +240,7 @@ class Trajectory:
             theta = math.atan(y/x)
             if x < 0:
                 if y > 0:
-                    theta = math.pi/2 + abs(theta)
+                    theta = 3*math.pi/2 - (math.pi/2 + abs(theta))
                 else:
                     theta = math.pi + abs(theta)
 
@@ -243,8 +248,13 @@ class Trajectory:
             theta = theta + 2*math.pi
 
         return math.degrees(theta)
-        
 
+
+    def getQuadrants(self, angleList):
+        quadrants = []
+        for angle in angleList:
+            quadrants.append(int(math.floor(angle/90) + 1))
+        return sorted(quadrants)
 
 ''' View:
     Visualizes points from user input
